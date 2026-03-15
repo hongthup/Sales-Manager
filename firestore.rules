@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: customers
+    // Fields: name (string), phone (string), address (string), totalDebt (number), lastPurchaseDate (string)
+    //
+    // Collection: products
+    // Fields: name (string), price (number), unitId (string), categoryId (string)
+    //
+    // Collection: categories
+    // Fields: name (string)
+    //
+    // Collection: units
+    // Fields: name (string)
+    //
+    // Collection: invoices
+    // Fields: customerId (string), customerName (string), date (string), totalAmount (number), paidAmount (number), debtAmount (number), status (string), items (list)
+    //
+    // Collection: payments
+    // Fields: invoiceId (string), customerId (string), date (string), amount (number), method (string)
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email == "hongthup@gmail.com";
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    match /test/{docId} {
+      allow read: if isAuthenticated();
+    }
+
+    function isValidCustomer(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             data.totalDebt is number;
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.price is number && data.price >= 0 &&
+             data.unitId is string && data.unitId.size() > 0 &&
+             data.categoryId is string && data.categoryId.size() > 0;
+    }
+
+    function isValidCategory(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100;
+    }
+
+    function isValidUnit(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 50;
+    }
+
+    function isValidInvoice(data) {
+      return data.customerId is string &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.paidAmount is number && data.paidAmount >= 0 &&
+             data.debtAmount is number &&
+             data.status in ['paid', 'partial', 'debt'];
+    }
+
+    function isValidPayment(data) {
+      return data.customerId is string &&
+             data.amount is number && data.amount > 0 &&
+             data.method in ['cash', 'transfer'] &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 500));
+    }
+
+    match /customers/{customerId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidCustomer(request.resource.data);
+      allow update: if isAuthenticated() && isValidCustomer(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidProduct(request.resource.data);
+      allow update: if isAuthenticated() && isValidProduct(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidCategory(request.resource.data);
+      allow update: if isAuthenticated() && isValidCategory(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /units/{unitId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidUnit(request.resource.data);
+      allow update: if isAuthenticated() && isValidUnit(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidInvoice(request.resource.data);
+      allow update: if isAuthenticated() && isValidInvoice(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPayment(request.resource.data);
+      allow update: if isAuthenticated() && isValidPayment(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

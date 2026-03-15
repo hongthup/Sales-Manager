@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "Thông tin khách hàng và tổng nợ",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Tên khách hàng" },
+        "phone": { "type": "string", "description": "Số điện thoại" },
+        "address": { "type": "string", "description": "Địa chỉ" },
+        "totalDebt": { "type": "number", "description": "Tổng nợ hiện tại" },
+        "lastPurchaseDate": { "type": "string", "format": "date-time", "description": "Ngày mua hàng gần nhất" }
+      },
+      "required": ["name", "phone", "totalDebt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Thông tin sản phẩm",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Tên sản phẩm" },
+        "price": { "type": "number", "description": "Giá bán" },
+        "unitId": { "type": "string", "description": "ID đơn vị tính" },
+        "categoryId": { "type": "string", "description": "ID danh mục" }
+      },
+      "required": ["name", "price", "unitId", "categoryId"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Danh mục hàng hóa",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Tên danh mục" }
+      },
+      "required": ["name"]
+    },
+    "Unit": {
+      "title": "Unit",
+      "description": "Đơn vị tính",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Tên đơn vị tính" }
+      },
+      "required": ["name"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Hóa đơn bán hàng",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string", "description": "ID khách hàng" },
+        "customerName": { "type": "string", "description": "Tên khách hàng" },
+        "date": { "type": "string", "format": "date-time", "description": "Ngày lập hóa đơn" },
+        "totalAmount": { "type": "number", "description": "Tổng tiền hóa đơn" },
+        "paidAmount": { "type": "number", "description": "Số tiền đã thanh toán" },
+        "debtAmount": { "type": "number", "description": "Số tiền còn nợ" },
+        "status": { "type": "string", "enum": ["paid", "partial", "debt"], "description": "Trạng thái thanh toán" },
+        "items": { "type": "array", "description": "Danh sách sản phẩm trong hóa đơn" }
+      },
+      "required": ["customerId", "date", "totalAmount", "paidAmount", "debtAmount", "status"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Lịch sử thanh toán nợ",
+      "type": "object",
+      "properties": {
+        "invoiceId": { "type": "string", "description": "ID hóa đơn (nếu có)" },
+        "customerId": { "type": "string", "description": "ID khách hàng" },
+        "date": { "type": "string", "format": "date-time", "description": "Ngày thanh toán" },
+        "amount": { "type": "number", "description": "Số tiền thanh toán" },
+        "method": { "type": "string", "enum": ["cash", "transfer"], "description": "Phương thức thanh toán" },
+        "note": { "type": "string", "description": "Ghi chú thanh toán" }
+      },
+      "required": ["customerId", "date", "amount", "method"]
+    }
+  },
+  "firestore": {
+    "/customers": { "schema": "Customer", "description": "Danh sách khách hàng" },
+    "/products": { "schema": "Product", "description": "Danh sách sản phẩm" },
+    "/categories": { "schema": "Category", "description": "Danh mục sản phẩm" },
+    "/units": { "schema": "Unit", "description": "Đơn vị tính" },
+    "/invoices": { "schema": "Invoice", "description": "Danh sách hóa đơn" },
+    "/payments": { "schema": "Payment", "description": "Lịch sử thanh toán" }
+  }
+}
